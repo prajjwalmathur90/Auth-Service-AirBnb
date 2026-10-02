@@ -1,6 +1,4 @@
-MIGRATION_FOLDER=db/migrations
-DB_URL=root:rootpassword@tcp(127.0.0.1:3306)/auth_dev
-
+include .env
 
 
 dev:
