@@ -1,7 +1,7 @@
 package main
 
 import (
-	"AuthInGo/app"
+	app "AuthInGo/app"
 	config "AuthInGo/config/env"
 	"log"
 )
@@ -11,8 +11,9 @@ func main() {
 
 	cfg := app.NewConfig()
 	application := app.NewApplication(*cfg)
-
+	
 	if err := application.Run(); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}
+
 }

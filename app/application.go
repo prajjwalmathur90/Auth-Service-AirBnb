@@ -1,9 +1,11 @@
 package app
 
 import (
+	dbConfig "AuthInGo/config/db"
 	config "AuthInGo/config/env"
 	"AuthInGo/controllers"
 	db "AuthInGo/db/repositories"
+	repo "AuthInGo/db/repositories"
 	"AuthInGo/router"
 	"AuthInGo/services"
 	"fmt"
@@ -36,7 +38,14 @@ func NewApplication(config Config) *Application {
 }
 
 func (app *Application) Run() error {
-	ur := db.NewUserRepository()
+
+	db, err := dbConfig.SetupDB()
+
+	if err != nil {
+		fmt.Println("error : " , err.Error())
+	}
+
+	ur := repo.NewUserRepository(db)
 	us := services.NewUserServiceImpl(ur)
 	uc := controllers.NewUserController(us)
 	urouter := router.NewUserRouter(uc)
@@ -48,7 +57,7 @@ func (app *Application) Run() error {
 		WriteTimeout: 10 * time.Second,
 	}
 
-	fmt.Println("Server is running at", app.Config.Addr)
+	fmt.Println("Server is running at port", app.Config.Addr)
 
 	return server.ListenAndServe()
 }
