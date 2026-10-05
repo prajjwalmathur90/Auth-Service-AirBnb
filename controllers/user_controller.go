@@ -2,6 +2,7 @@ package controllers
 
 import (
 	dto "AuthInGo/Dto"
+	"AuthInGo/middleware"
 	"AuthInGo/services"
 	"AuthInGo/utils"
 	"fmt"
@@ -66,19 +67,9 @@ func (uc *UserController) GetAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (uc *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
-	var payload dto.CreateUserRequestDto;
+	payload := r.Context().Value(middleware.PayloadKey).(*dto.CreateUserRequestDto)
 
-	if jsonErr := utils.ReadJsonBody(r, &payload); jsonErr != nil {
-		utils.WriteJsonErrorResponse(w, http.StatusBadRequest, "Invalid Json Body", jsonErr)
-		return
-	}
-
-	if validationErr := utils.Validator.Struct(payload); validationErr != nil {
-		utils.WriteJsonErrorResponse(w, http.StatusBadRequest, "Invalid Data!!", validationErr)
-		return
-	}
-
-	user, err := uc.UserService.CreateUser(&payload)
+	user, err := uc.UserService.CreateUser(payload)
 
 	if err != nil {
 		utils.WriteJsonErrorResponse(w, http.StatusInternalServerError, "Failed to create user", err)
@@ -95,19 +86,9 @@ func (uc *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 
 func (uc *UserController) LoginUser(w http.ResponseWriter, r *http.Request) {
-	var payload dto.LoginUserRequestDto;
+	payload := r.Context().Value(middleware.PayloadKey).(*dto.LoginUserRequestDto)
 
-	if jsonErr := utils.ReadJsonBody(r, &payload); jsonErr != nil {
-		utils.WriteJsonErrorResponse(w, http.StatusBadRequest, "Invalid Json Body", jsonErr)
-		return
-	}
-
-	if validationErr := utils.Validator.Struct(payload); validationErr != nil {
-		utils.WriteJsonErrorResponse(w, http.StatusBadRequest, "Invalid Data!!", validationErr)
-		return
-	}
-
-	jwtToken, err := uc.UserService.LoginUser(&payload)
+	jwtToken, err := uc.UserService.LoginUser(payload)
 
 	if err != nil {
 		utils.WriteJsonErrorResponse(w, http.StatusInternalServerError, "Failed to login user", err)
