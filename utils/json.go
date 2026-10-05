@@ -35,10 +35,14 @@ func WriteJsonSuccessResponse(w http.ResponseWriter, status int, message string,
 }
 
 func WriteJsonErrorResponse(w http.ResponseWriter, status int, message string, err error) error {
+	var errMsg any
+	if err != nil {
+		errMsg = err.Error()
+	}
 	response := map[string]any{
 		"message": message,
-		"data":   nil,
-		"error":  err.Error(),
+		"data":    nil,
+		"error":   errMsg,
 		"success": false,
 	}
 	return WriteJsonResponse(w, status, response)

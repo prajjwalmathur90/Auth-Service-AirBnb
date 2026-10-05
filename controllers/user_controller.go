@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+
+	"github.com/go-chi/chi/v5"
 )
 
 // we are not writing interfaces for controllers because
@@ -25,7 +27,7 @@ func NewUserController(_userService services.UserService) *UserController {
 }
 
 func (uc *UserController) GetUserByID(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.PathValue("id"))
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 
 	if err != nil {
 		fmt.Println("Error converting id to int : ", err)
@@ -116,7 +118,7 @@ func (uc *UserController) LoginUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (uc *UserController) DeleteById(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.PathValue("id"))
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 
 	if err != nil {
 		utils.WriteJsonErrorResponse(w, http.StatusBadRequest, "Invalid Id", err)

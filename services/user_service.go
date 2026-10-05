@@ -120,14 +120,14 @@ func (u *UserServiceImpl) LoginUser(payload *dto.LoginUserRequestDto) (string, e
 
 	if user == nil {
 		fmt.Println("No user found with this email")
-		return "", err
+		return "", fmt.Errorf("no user found with this email")
 	}
 
 	isPasswordValid := utils.CheckHashedPassword(payload.Password, user.Password)
 
 	if !isPasswordValid {
 		fmt.Println("Invalid password")
-		return "", nil
+		return "", fmt.Errorf("invalid password")
 	}
 
 	jwtPayload := jwt.MapClaims{

@@ -72,7 +72,7 @@ func (u *UserReposityImpl) GetByID(id int) (*models.User, error) {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			fmt.Println("User Not Found with this id")
-			return nil, err
+			return nil, nil
 		} else {
 			fmt.Println("Error scanning user : ", err)
 			return nil, err
@@ -96,7 +96,7 @@ func (u *UserReposityImpl) GetByEmail(email string) (*models.User, error) {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			fmt.Println("User Not Found with this email")
-			return nil, err
+			return nil, nil
 		} else {
 			fmt.Println("Error scanning user : ", err)
 			return nil, err
@@ -152,7 +152,7 @@ func (u *UserReposityImpl) GetByUsername(username string) (*models.User, error) 
 	if err != nil {
 		if err == sql.ErrNoRows {
 			fmt.Println("User Not Found with this username")
-			return nil, err
+			return nil, nil
 		} else {
 			fmt.Println("Error scanning user : ", err)
 			return nil, err

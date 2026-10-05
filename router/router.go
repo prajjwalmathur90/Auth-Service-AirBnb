@@ -19,5 +19,3 @@ func SetupRouter(UserRouter Router) *chi.Mux {
 
 	return chiRouter
 }
-
-
