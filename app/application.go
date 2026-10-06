@@ -49,10 +49,11 @@ func (app *Application) Run() error {
 	us := services.NewUserServiceImpl(ur)
 	uc := controllers.NewUserController(us)
 	urouter := router.NewUserRouter(uc)
+	grouter := router.NewGatewayRouter()
 
 	server := &http.Server{
 		Addr:         app.Config.Addr,
-		Handler:      router.SetupRouter(urouter),
+		Handler:      router.SetupRouter(urouter, grouter),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
