@@ -18,9 +18,17 @@ func NewUserRouter(_userController *controllers.UserController) Router {
 }
 
 func (ur *UserRouter) Register(r chi.Router) {
-	r.Get("/{id}", ur.userController.GetUserByID)
-	r.Get("/", ur.userController.GetAll)
+	// public routes
 	r.With(middleware.ValidateCreateUserRequest).Post("/signup", ur.userController.CreateUser)
 	r.With(middleware.ValidateLoginRequest).Post("/login", ur.userController.LoginUser)
-	r.Delete("/{id}", ur.userController.DeleteById)
+	r.Post("/logout", ur.userController.LogoutUser)
+
+	// protected routes (require a valid JWT cookie)
+	r.Group(func(pr chi.Router) {
+		pr.Use(middleware.JWTAuthMiddleware)
+
+		pr.Get("/{id}", ur.userController.GetUserByID)
+		pr.Get("/", ur.userController.GetAll)
+		pr.Delete("/{id}", ur.userController.DeleteById)
+	})
 }

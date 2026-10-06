@@ -27,10 +27,11 @@ func NewUserController(_userService services.UserService) *UserController {
 }
 
 func (uc *UserController) GetUserByID(w http.ResponseWriter, r *http.Request) {
-	userId := r.URL.Query().Get("id")
+	userId, err := strconv.Atoi(chi.URLParam(r, "id"))
 
-	if userId == "" {
-		userId = r.Context().Value("user_id").(string)
+	if err != nil {
+		utils.WriteJsonErrorResponse(w, http.StatusBadRequest, "Invalid Id", err)
+		return
 	}
 	
 	user, err := uc.UserService.GetUserByID(userId)
@@ -79,7 +80,22 @@ func (uc *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJsonSuccessResponse(w, http.StatusOK, "User created successfully!", user)
+	loginPayload := &dto.LoginUserRequestDto{
+		Email: payload.Email,
+		Password: payload.Password,
+	}
+
+	jwtToken, err := uc.UserService.LoginUser(loginPayload)
+
+	if err != nil {
+		// the account already exists at this point, so don't report signup as failed
+		utils.WriteJsonSuccessResponse(w, http.StatusCreated, "User created successfully! Please login to continue", nil)
+		return
+	}
+
+	utils.SetAuthCookie(w, jwtToken)
+
+	utils.WriteJsonSuccessResponse(w, http.StatusCreated, "User created successfully!", nil)
 }
 
 
@@ -93,7 +109,15 @@ func (uc *UserController) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJsonSuccessResponse(w, http.StatusOK, "User logged in successfully!", jwtToken)
+	utils.SetAuthCookie(w, jwtToken)
+
+	utils.WriteJsonSuccessResponse(w, http.StatusOK, "User logged in successfully!", nil)
+}
+
+func (uc *UserController) LogoutUser(w http.ResponseWriter, r *http.Request) {
+	utils.ClearAuthCookie(w)
+
+	utils.WriteJsonSuccessResponse(w, http.StatusOK, "User logged out successfully!", nil)
 }
 
 func (uc *UserController) DeleteById(w http.ResponseWriter, r *http.Request) {
@@ -104,12 +128,21 @@ func (uc *UserController) DeleteById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	authUserId, _ := r.Context().Value("userId").(string)
+
+	if authUserId != strconv.Itoa(id) {
+		utils.WriteJsonErrorResponse(w, http.StatusForbidden, "You can only delete your own account", nil)
+		return
+	}
+
 	err = uc.UserService.DeleteById(id)
 
 	if err != nil {
 		utils.WriteJsonErrorResponse(w, http.StatusInternalServerError, "Failed to delete user", err)
 		return
 	}
+
+	utils.ClearAuthCookie(w)
 
 	utils.WriteJsonSuccessResponse(w, http.StatusOK, "User deleted successfully!", nil)
 }
