@@ -5,7 +5,6 @@ import (
 	"AuthInGo/middleware"
 	"AuthInGo/services"
 	"AuthInGo/utils"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -28,14 +27,13 @@ func NewUserController(_userService services.UserService) *UserController {
 }
 
 func (uc *UserController) GetUserByID(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	userId := r.URL.Query().Get("id")
 
-	if err != nil {
-		fmt.Println("Error converting id to int : ", err)
-		return
+	if userId == "" {
+		userId = r.Context().Value("user_id").(string)
 	}
 	
-	user, err := uc.UserService.GetUserByID(id)
+	user, err := uc.UserService.GetUserByID(userId)
 
 	if err != nil {
 		utils.WriteJsonErrorResponse(w, http.StatusInternalServerError, "Failed to get user by id", err)

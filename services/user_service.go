@@ -6,6 +6,7 @@ import (
 	"AuthInGo/models"
 	"AuthInGo/utils"
 	"fmt"
+	"strconv"
 
 	env "AuthInGo/config/env"
 
@@ -13,7 +14,7 @@ import (
 )
 
 type UserService interface {
-	GetUserByID(id int) (*models.User, error)
+	GetUserByID(id string) (*models.User, error)
 	GetAll() ([]*models.User, error)
 	CreateUser(payload *dto.CreateUserRequestDto) (*models.User, error)
 	LoginUser(payload *dto.LoginUserRequestDto) (string, error)
@@ -30,7 +31,7 @@ func NewUserServiceImpl(_userRepository db.UserRepository) UserService {
 	}
 }
 
-func (u *UserServiceImpl) GetUserByID(id int) (*models.User, error) {
+func (u *UserServiceImpl) GetUserByID(id string) (*models.User, error) {
 	user, err := u.userRepository.GetByID(id)
 
 	if err != nil {
@@ -151,7 +152,7 @@ func (u *UserServiceImpl) LoginUser(payload *dto.LoginUserRequestDto) (string, e
 
 func (u *UserServiceImpl) DeleteById(id int) (error) {
 
-	user, err := u.userRepository.GetByID(id)
+	user, err := u.userRepository.GetByID(strconv.Itoa(id))
 
 	if err != nil {
 		fmt.Println("Error fetching user by id : ", err)
