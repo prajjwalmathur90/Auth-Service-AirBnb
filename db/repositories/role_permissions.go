@@ -7,7 +7,7 @@ import (
 
 type RolePermissionsRepository interface {
 	GetRolePermissionById(id int64) (*models.RolePermission, error)
-	GetRolePermissionsByRoleId(roleId int64) ([]models.RolePermission, error)
+	GetRolePermissionsByRoleId(roleId int64) ([]*models.RolePermission, error)
 	AddPermissionToRole(roleId int64, permissionId int64) (*models.RolePermission, error)
 	RemovePermissionFromRole(roleId int64, permissionId int64) error
 	GetAllRolePermissions() ([]*models.RolePermission, error)
@@ -36,7 +36,7 @@ func (rp *RolePermissionsRepositoryImpl) GetRolePermissionById(id int64) (*model
 	return rolePermission, nil
 }
 
-func (rp *RolePermissionsRepositoryImpl) GetRolePermissionsByRoleId(roleId int64) ([]models.RolePermission, error) {
+func (rp *RolePermissionsRepositoryImpl) GetRolePermissionsByRoleId(roleId int64) ([]*models.RolePermission, error) {
 	query := "SELECT id, role_id, permission_id, created_at, updated_at FROM role_permissions WHERE role_id = ?"
 
 	rows, err := rp.db.Query(query, roleId)
@@ -45,7 +45,7 @@ func (rp *RolePermissionsRepositoryImpl) GetRolePermissionsByRoleId(roleId int64
 	}
 	defer rows.Close()
 
-	var rolePermissions []models.RolePermission
+	var rolePermissions []*models.RolePermission
 
 	if rows.Err() != nil {
 		return nil, rows.Err()
@@ -56,7 +56,7 @@ func (rp *RolePermissionsRepositoryImpl) GetRolePermissionsByRoleId(roleId int64
 		if err := rows.Scan(&rolePermission.Id, &rolePermission.RoleId, &rolePermission.PermissionId, &rolePermission.CreatedAt, &rolePermission.UpdatedAt); err != nil {
 			return nil, err
 		}
-		rolePermissions = append(rolePermissions, rolePermission)
+		rolePermissions = append(rolePermissions, &rolePermission)
 	}
 
 	return rolePermissions, nil

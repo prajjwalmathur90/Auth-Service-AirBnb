@@ -8,7 +8,7 @@ import (
 type RoleRepository interface {
 	GetRoleById(id int64) (*models.Role, error)
 	GetRoleByName(name string) (*models.Role, error)
-	GetAllRoles() ([]models.Role, error)
+	GetAllRoles() ([]*models.Role, error)
 	CreateRole(name string, description string) (*models.Role, error)
 	UpdateRole(id int64, name string, description string) (*models.Role, error)
 	DeleteRole(id int64) error
@@ -50,7 +50,7 @@ func (r *RoleRepositoryImpl) GetRoleByName(name string) (*models.Role, error) {
 	return role, nil
 }
 
-func (r *RoleRepositoryImpl) GetAllRoles() ([]models.Role, error) {
+func (r *RoleRepositoryImpl) GetAllRoles() ([]*models.Role, error) {
 	query := "SELECT id, name, description, created_at, updated_at FROM roles"
 
 	rows, err := r.db.Query(query)
@@ -59,7 +59,7 @@ func (r *RoleRepositoryImpl) GetAllRoles() ([]models.Role, error) {
 	}
 	defer rows.Close()
 
-	var roles []models.Role
+	var roles []*models.Role
 
 	if rows.Err() != nil {
 		return nil, rows.Err()
@@ -70,7 +70,7 @@ func (r *RoleRepositoryImpl) GetAllRoles() ([]models.Role, error) {
 		if err := rows.Scan(&role.Id, &role.Name, &role.Description, &role.CreatedAt, &role.UpdatedAt); err != nil {
 			return nil, err
 		}
-		roles = append(roles, *role)
+		roles = append(roles, role)
 	}
 
 	return roles, nil
