@@ -39,10 +39,10 @@ func NewApplication(config Config) *Application {
 
 func (app *Application) Run() error {
 
-	db, err := dbConfig.SetupDB()
+	db := dbConfig.DB
 
-	if err != nil {
-		fmt.Println("error : " , err.Error())
+	if db == nil {
+		fmt.Println("error : Database connection not found")
 	}
 
 	ur := repo.NewUserRepository(db)

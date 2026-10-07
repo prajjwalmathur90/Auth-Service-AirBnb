@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	dto "AuthInGo/Dto"
+	dto "AuthInGo/dto"
 	"AuthInGo/middleware"
 	"AuthInGo/services"
 	"AuthInGo/utils"

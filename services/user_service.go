@@ -1,7 +1,7 @@
 package services
 
 import (
-	dto "AuthInGo/Dto"
+	dto "AuthInGo/dto"
 	db "AuthInGo/db/repositories"
 	"AuthInGo/models"
 	"AuthInGo/utils"

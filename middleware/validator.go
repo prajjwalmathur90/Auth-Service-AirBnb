@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	dto "AuthInGo/Dto"
+	dto "AuthInGo/dto"
 	"AuthInGo/utils"
 	"context"
 	"net/http"
