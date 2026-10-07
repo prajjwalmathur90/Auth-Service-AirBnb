@@ -49,6 +49,29 @@ func (uc *UserController) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJsonSuccessResponse(w, http.StatusOK, "User fetched successfully!", user)
 }
 
+func (uc *UserController) GetUserRoles(w http.ResponseWriter, r *http.Request) {
+	userId, err := strconv.Atoi(chi.URLParam(r, "id"))
+
+	if err != nil {
+		utils.WriteJsonErrorResponse(w, http.StatusBadRequest, "Invalid Id", err)
+		return
+	}
+
+	roles, err := uc.UserService.GetUserRoles(userId)
+
+	if err != nil {
+		utils.WriteJsonErrorResponse(w, http.StatusInternalServerError, "Failed to get user roles", err)
+		return
+	}
+
+	if roles == nil {
+		utils.WriteJsonErrorResponse(w, http.StatusNotFound, "User not found with this id", nil)
+		return
+	}
+
+	utils.WriteJsonSuccessResponse(w, http.StatusOK, "User roles fetched successfully!", roles)
+}
+
 func (uc *UserController) GetAll(w http.ResponseWriter, r *http.Request) {
 	users, err := uc.UserService.GetAll()
 

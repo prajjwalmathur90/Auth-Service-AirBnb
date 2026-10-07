@@ -18,13 +18,20 @@ func NewRoleRouter(_roleController *controllers.RoleController) Router {
 }
 
 func (rr *RoleRouter) Register(r chi.Router) {
-	r.Get("/{id}", rr.roleController.GetRoleById)
-	r.Get("/", rr.roleController.GetAllRoles)
-	r.With(middleware.ValidateCreateRoleRequest).Post("/", rr.roleController.CreateRole)
-	r.With(middleware.ValidateUpdateRoleRequest).Put("/{id}", rr.roleController.UpdateRole)
-	r.Delete("/{id}", rr.roleController.DeleteRole)
+	r.Group(func(pr chi.Router) {
+		pr.Use(middleware.JWTAuthMiddleware)
+		pr.Use(middleware.RequireAllRoles("admin"))
 
-	r.Get("/{id}/permissions", rr.roleController.GetRolePermissions)
-	r.With(middleware.ValidateAddPermissionToRoleRequest).Post("/{id}/permissions", rr.roleController.AddPermissionToRole)
-	r.Delete("/{id}/permissions/{permissionId}", rr.roleController.RemovePermissionFromRole)
+		pr.Get("/{id}", rr.roleController.GetRoleById)
+		pr.Get("/", rr.roleController.GetAllRoles)
+		pr.With(middleware.ValidateCreateRoleRequest).Post("/", rr.roleController.CreateRole)
+		pr.With(middleware.ValidateUpdateRoleRequest).Put("/{id}", rr.roleController.UpdateRole)
+		pr.Delete("/{id}", rr.roleController.DeleteRole)
+
+		pr.Get("/{id}/permissions", rr.roleController.GetRolePermissions)
+		pr.With(middleware.ValidateAddPermissionToRoleRequest).Post("/{id}/permissions", rr.roleController.AddPermissionToRole)
+		pr.Delete("/{id}/permissions/{permissionId}", rr.roleController.RemovePermissionFromRole)
+
+		pr.With(middleware.ValidateAssignRoleToUserRequest).Post("/users/{userId}", rr.roleController.AssignRoleToUser)
+	})
 }

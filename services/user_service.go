@@ -19,16 +19,43 @@ type UserService interface {
 	CreateUser(payload *dto.CreateUserRequestDto) (*models.User, error)
 	LoginUser(payload *dto.LoginUserRequestDto) (string, error)
 	DeleteById(id int) (error)
+	GetUserRoles(id int) ([]*models.Role, error)
 }
 
 type UserServiceImpl struct {
-	userRepository db.UserRepository
+	userRepository      db.UserRepository
+	userRolesRepository db.UserRolesRepository
 }
 
-func NewUserServiceImpl(_userRepository db.UserRepository) UserService {
+func NewUserServiceImpl(_userRepository db.UserRepository, _userRolesRepository db.UserRolesRepository) UserService {
 	return &UserServiceImpl{
-		userRepository: _userRepository,
+		userRepository:      _userRepository,
+		userRolesRepository: _userRolesRepository,
 	}
+}
+
+func (u *UserServiceImpl) GetUserRoles(id int) ([]*models.Role, error) {
+	user, err := u.userRepository.GetByID(id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if user == nil {
+		return nil, nil
+	}
+
+	roles, err := u.userRolesRepository.GetUserRoles(int64(id))
+
+	if err != nil {
+		return nil, err
+	}
+
+	if roles == nil {
+		roles = []*models.Role{}
+	}
+
+	return roles, nil
 }
 
 func (u *UserServiceImpl) GetUserByID(id int) (*models.User, error) {

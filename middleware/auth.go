@@ -82,11 +82,13 @@ func RequireAllRoles(roles ...string) func(http.Handler) http.Handler {
 				return
 			}
 
-			dbConn := dbConfig.DB
-			if dbConn == nil {
+			dbConn, dbErr := dbConfig.SetupDB()
+			if dbErr != nil {
 				utils.WriteJsonErrorResponse(w, http.StatusInternalServerError, "Database connection error", nil)
 				return
 			}
+
+			defer dbConn.Close()
 
 			urr := repo.NewUserRolesRepository(dbConn)
 			hasAllRoles, hasAllRolesErr := urr.HasAllRoles(userId, roles)

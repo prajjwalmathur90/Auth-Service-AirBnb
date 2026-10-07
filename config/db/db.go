@@ -4,23 +4,11 @@ import (
 	env "AuthInGo/config/env"
 	"database/sql"
 	"fmt"
-	"log"
 
 	"github.com/go-sql-driver/mysql"
 )
 
-var DB *sql.DB
-
-func init() {
-	var err error
-	DB, err = setupDB()
-
-	if err != nil {
-		log.Fatal("Error connecting to db", err)
-	}
-}
-
-func setupDB() (*sql.DB, error) {
+func SetupDB() (*sql.DB, error) {
 	cfg := mysql.NewConfig()
 
 	cfg.User = env.GetString("DB_USER", "root")

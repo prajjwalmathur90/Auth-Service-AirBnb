@@ -16,19 +16,24 @@ type RoleService interface {
 	GetRolePermissions(roleId int64) ([]*models.RolePermission, error)
 	AddPermissionToRole(roleId int64, permissionId int64) (*models.RolePermission, error)
 	RemovePermissionFromRole(roleId int64, permissionId int64) error
+	AssignRoleToUser(userId int64, roleId int64) error
 }
 
 type RoleServiceImpl struct {
 	roleRepository          repositories.RoleRepository
 	rolePermissionRepsitory repositories.RolePermissionsRepository
 	permissionRepository    repositories.PermissionRepository
+	userRepository          repositories.UserRepository
+	userRolesRepository     repositories.UserRolesRepository
 }
 
-func NewRoleServiceImpl(roleRepo repositories.RoleRepository, rolePermissionRepo repositories.RolePermissionsRepository, permissionRepo repositories.PermissionRepository) RoleService {
+func NewRoleServiceImpl(roleRepo repositories.RoleRepository, rolePermissionRepo repositories.RolePermissionsRepository, permissionRepo repositories.PermissionRepository, userRepo repositories.UserRepository, userRolesRepo repositories.UserRolesRepository) RoleService {
 	return &RoleServiceImpl{
 		roleRepository:          roleRepo,
 		rolePermissionRepsitory: rolePermissionRepo,
 		permissionRepository:    permissionRepo,
+		userRepository:          userRepo,
+		userRolesRepository:     userRolesRepo,
 	}
 }
 
@@ -90,4 +95,16 @@ func (r *RoleServiceImpl) RemovePermissionFromRole(roleId int64, permissionId in
 		return errors.New("permission not found")
 	}
 	return r.rolePermissionRepsitory.RemovePermissionFromRole(roleId, permissionId)
+}
+
+func (r *RoleServiceImpl) AssignRoleToUser(userId int64, roleId int64) error {
+	user, _ := r.userRepository.GetByID(int(userId))
+	if user == nil {
+		return errors.New("user not found")
+	}
+	role, _ := r.roleRepository.GetRoleById(roleId)
+	if role == nil {
+		return errors.New("role not found")
+	}
+	return r.userRolesRepository.AssignRoleToUser(userId, roleId)
 }

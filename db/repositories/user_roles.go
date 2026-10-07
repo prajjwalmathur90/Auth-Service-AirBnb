@@ -3,6 +3,7 @@ package db
 import (
 	"AuthInGo/models"
 	"database/sql"
+	"strings"
 )
 
 type UserRolesRepository interface {
@@ -168,10 +169,19 @@ func (u *UserRolesRepositoryImpl) HasAllRoles(userId int64, roleNames []string) 
 		return true, nil
 	}
 	
-	query := `SELECT COUNT(*) = ? FROM user_roles ur INNER JOIN roles r ON ur.role_id = r.id 
-			  WHERE ur.user_id = ? AND r.name IN (?) GROUP BY ur.user_id`
-	
-	row := u.db.QueryRow(query, len(roleNames), userId, roleNames)
+	// database/sql cannot bind a slice to a single "?", so build one placeholder per role
+	placeholders := strings.TrimSuffix(strings.Repeat("?,", len(roleNames)), ",")
+
+	query := `SELECT COUNT(DISTINCT r.id) = ? FROM user_roles ur INNER JOIN roles r ON ur.role_id = r.id 
+			  WHERE ur.user_id = ? AND r.name IN (` + placeholders + `) GROUP BY ur.user_id`
+
+	args := make([]interface{}, 0, len(roleNames)+2)
+	args = append(args, len(roleNames), userId)
+	for _, name := range roleNames {
+		args = append(args, name)
+	}
+
+	row := u.db.QueryRow(query, args...)
 
 	var hasAllRoles bool
 	if err := row.Scan(&hasAllRoles); err != nil {

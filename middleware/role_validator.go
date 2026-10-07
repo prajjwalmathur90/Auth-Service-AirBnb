@@ -40,3 +40,8 @@ func ValidateUpdateRoleRequest(next http.Handler) http.Handler {
 func ValidateAddPermissionToRoleRequest(next http.Handler) http.Handler {
 	return validateBody(next, func() any { return &dto.AddPermissionToRoleRequestDto{} })
 }
+
+// ValidateAssignRoleToUserRequest validates the assign role request body
+func ValidateAssignRoleToUserRequest(next http.Handler) http.Handler {
+	return validateBody(next, func() any { return &dto.AssignRoleToUserRequestDto{} })
+}

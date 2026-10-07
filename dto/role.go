@@ -13,3 +13,7 @@ type UpdateRoleRequestDto struct {
 type AddPermissionToRoleRequestDto struct {
 	PermissionId int64 `json:"permission_id" validate:"required,gt=0"`
 }
+
+type AssignRoleToUserRequestDto struct {
+	RoleId int64 `json:"role_id" validate:"required,gt=0"`
+}

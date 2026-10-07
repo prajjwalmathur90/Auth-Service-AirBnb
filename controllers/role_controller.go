@@ -174,3 +174,21 @@ func (rc *RoleController) RemovePermissionFromRole(w http.ResponseWriter, r *htt
 
 	utils.WriteJsonSuccessResponse(w, http.StatusOK, "Permission removed from role successfully", nil)
 }
+
+func (rc *RoleController) AssignRoleToUser(w http.ResponseWriter, r *http.Request) {
+	userId, err := strconv.ParseInt(chi.URLParam(r, "userId"), 10, 64)
+
+	if err != nil {
+		utils.WriteJsonErrorResponse(w, http.StatusBadRequest, "Invalid User Id", err)
+		return
+	}
+
+	payload := r.Context().Value(middleware.PayloadKey).(*dto.AssignRoleToUserRequestDto)
+
+	if err := rc.RoleService.AssignRoleToUser(userId, payload.RoleId); err != nil {
+		writeServiceError(w, "Failed to assign role to user", err)
+		return
+	}
+
+	utils.WriteJsonSuccessResponse(w, http.StatusOK, "Role assigned to user successfully", nil)
+}

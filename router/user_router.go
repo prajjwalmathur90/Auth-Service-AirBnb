@@ -27,8 +27,9 @@ func (ur *UserRouter) Register(r chi.Router) {
 	r.Group(func(pr chi.Router) {
 		pr.Use(middleware.JWTAuthMiddleware)
 
-		pr.Get("/{id}", ur.userController.GetUserByID)
-		pr.Get("/", ur.userController.GetAll)
-		pr.Delete("/{id}", ur.userController.DeleteById)
+		pr.With(middleware.RequireAllRoles("user")).Get("/{id}", ur.userController.GetUserByID)
+		pr.With(middleware.RequireAllRoles("user")).Get("/{id}/roles", ur.userController.GetUserRoles)
+		pr.With(middleware.RequireAllRoles("user")).Get("/", ur.userController.GetAll)
+		pr.With(middleware.RequireAllRoles("user")).Delete("/{id}", ur.userController.DeleteById)
 	})
 }

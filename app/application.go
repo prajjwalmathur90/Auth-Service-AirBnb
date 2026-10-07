@@ -39,14 +39,15 @@ func NewApplication(config Config) *Application {
 
 func (app *Application) Run() error {
 
-	db := dbConfig.DB
+	db, err := dbConfig.SetupDB()
 
-	if db == nil {
+	if err != nil {
 		fmt.Println("error : Database connection not found")
 	}
 
 	ur := repo.NewUserRepository(db)
-	us := services.NewUserServiceImpl(ur)
+	urr := repo.NewUserRolesRepository(db)
+	us := services.NewUserServiceImpl(ur, urr)
 	uc := controllers.NewUserController(us)
 	urouter := router.NewUserRouter(uc)
 
@@ -55,7 +56,7 @@ func (app *Application) Run() error {
 	rr := repo.NewRoleRepository(db)
 	rrps := repo.NewRolePermissionsRepository(db)
 	rp := repo.NewPermissionRepository(db)
-	rrs := services.NewRoleServiceImpl(rr, rrps, rp)
+	rrs := services.NewRoleServiceImpl(rr, rrps, rp, ur, urr)
 	rc := controllers.NewRoleController(rrs)
 	rrouter := router.NewRoleRouter(rc)
 
