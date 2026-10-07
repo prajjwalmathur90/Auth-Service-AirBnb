@@ -105,3 +105,39 @@ func RequireAllRoles(roles ...string) func(http.Handler) http.Handler {
 		})
 	}
 }
+
+func RequireAnyRoles(roles ...string) func(http.Handler) http.Handler {
+	
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+			userIdStr := r.Context().Value("userId").(string)
+			userId, err := strconv.ParseInt(userIdStr, 10, 64)
+			if err != nil {
+				utils.WriteJsonErrorResponse(w, http.StatusBadRequest, "Invalid user id", nil)
+				return
+			}
+
+			dbConn, dbErr := dbConfig.SetupDB()
+			if dbErr != nil {
+				utils.WriteJsonErrorResponse(w, http.StatusInternalServerError, "Database connection error", nil)
+				return
+			}
+
+			defer dbConn.Close()
+
+			urr := repo.NewUserRolesRepository(dbConn)
+			hasAnyRoles, hasAnyRolesErr := urr.HasAnyRoles(userId, roles)
+			if hasAnyRolesErr != nil {
+				utils.WriteJsonErrorResponse(w, http.StatusInternalServerError, "Internal Server error", nil)
+				return
+			}
+			if !hasAnyRoles {
+				utils.WriteJsonErrorResponse(w, http.StatusForbidden, "Insufficient permissions", nil)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}

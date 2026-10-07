@@ -14,6 +14,7 @@ type UserRolesRepository interface {
 	HasPermission(userId int64, permissionName string) (bool, error)
 	HasRole(userId int64, roleName string) (bool, error)
 	HasAllRoles(userId int64, roleNames []string) (bool, error)
+	HasAnyRoles(userId int64, roleNames []string) (bool, error)
 }
 
 type UserRolesRepositoryImpl struct {
@@ -192,4 +193,35 @@ func (u *UserRolesRepositoryImpl) HasAllRoles(userId int64, roleNames []string) 
 	}
 
 	return hasAllRoles, nil
+}
+
+func (u *UserRolesRepositoryImpl) HasAnyRoles(userId int64, roleNames []string) (bool, error) {
+	
+	if len(roleNames) == 0 {
+		return true, nil
+	}
+	
+	// database/sql cannot bind a slice to a single "?", so build one placeholder per role
+	placeholders := strings.TrimSuffix(strings.Repeat("?,", len(roleNames)), ",")
+
+	query := `SELECT COUNT(DISTINCT r.id) > 0 FROM user_roles ur INNER JOIN roles r ON ur.role_id = r.id 
+			  WHERE ur.user_id = ? AND r.name IN (` + placeholders + `)`
+
+	args := make([]interface{}, 0, len(roleNames)+1)
+	args = append(args, userId)
+	for _, name := range roleNames {
+		args = append(args, name)
+	}
+
+	row := u.db.QueryRow(query, args...)
+
+	var hasAnyRoles bool
+	if err := row.Scan(&hasAnyRoles); err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return hasAnyRoles, nil
 }
