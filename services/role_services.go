@@ -3,6 +3,7 @@ package services
 import (
 	repositories "AuthInGo/db/repositories"
 	"AuthInGo/models"
+	"errors"
 )
 
 type RoleService interface {
@@ -20,12 +21,14 @@ type RoleService interface {
 type RoleServiceImpl struct {
 	roleRepository          repositories.RoleRepository
 	rolePermissionRepsitory repositories.RolePermissionsRepository
+	permissionRepository    repositories.PermissionRepository
 }
 
-func NewRoleServiceImpl(roleRepo repositories.RoleRepository, rolePermissionRepo repositories.RolePermissionsRepository) RoleService {
+func NewRoleServiceImpl(roleRepo repositories.RoleRepository, rolePermissionRepo repositories.RolePermissionsRepository, permissionRepo repositories.PermissionRepository) RoleService {
 	return &RoleServiceImpl{
 		roleRepository:          roleRepo,
 		rolePermissionRepsitory: rolePermissionRepo,
+		permissionRepository:    permissionRepo,
 	}
 }
 
@@ -46,10 +49,18 @@ func (r *RoleServiceImpl) CreateRole(name string, description string) (*models.R
 }
 
 func (r *RoleServiceImpl) UpdateRole(id int64, name string, description string) (*models.Role, error) {
+	role, _ := r.roleRepository.GetRoleById(id)
+	if role == nil {
+		return nil, errors.New("role not found")
+	}
 	return r.roleRepository.UpdateRole(id, name, description)
 }
 
 func (r *RoleServiceImpl) DeleteRole(id int64) error {
+	role, _ := r.roleRepository.GetRoleById(id)
+	if role == nil {
+		return errors.New("role not found")
+	}
 	return r.roleRepository.DeleteRole(id)
 }
 
@@ -58,9 +69,25 @@ func (r *RoleServiceImpl) GetRolePermissions(roleId int64) ([]*models.RolePermis
 }
 
 func (r *RoleServiceImpl) AddPermissionToRole(roleId int64, permissionId int64) (*models.RolePermission, error) {
+	role, _ := r.roleRepository.GetRoleById(roleId)
+	if role == nil {
+		return nil, errors.New("role not found")
+	}
+	permission, _ := r.permissionRepository.GetPermissionById(permissionId)
+	if permission == nil {
+		return nil, errors.New("permission not found")
+	}
 	return r.rolePermissionRepsitory.AddPermissionToRole(roleId, permissionId)
 }
 
 func (r *RoleServiceImpl) RemovePermissionFromRole(roleId int64, permissionId int64) error {
+	role, _ := r.roleRepository.GetRoleById(roleId)
+	if role == nil {
+		return errors.New("role not found")
+	}
+	permission, _ := r.permissionRepository.GetPermissionById(permissionId)
+	if permission == nil {
+		return errors.New("permission not found")
+	}
 	return r.rolePermissionRepsitory.RemovePermissionFromRole(roleId, permissionId)
 }

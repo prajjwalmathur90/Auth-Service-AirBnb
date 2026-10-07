@@ -11,7 +11,7 @@ type Router interface {
 	Register(r chi.Router)
 }
 
-func SetupRouter(UserRouter Router, GatewayRouter Router) *chi.Mux {
+func SetupRouter(UserRouter Router, GatewayRouter Router, RoleRouter Router) *chi.Mux {
 	chiRouter := chi.NewRouter()
 
 	chiRouter.Use(middleware.RateLimitMiddleware)
@@ -24,6 +24,11 @@ func SetupRouter(UserRouter Router, GatewayRouter Router) *chi.Mux {
 
 	// /api/bookings/*, /api/hotels/* -> JWT -> reverse proxy
 	GatewayRouter.Register(chiRouter)
+
+	// role router
+	chiRouter.Route("/api/roles", func(r chi.Router) {
+		RoleRouter.Register(r)
+	})
 
 	return chiRouter
 }
