@@ -70,6 +70,43 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func OptionalJWTAuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token := extractToken(r)
+
+		if token == "" {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		claims := jwt.MapClaims{}
+
+		_, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
+			return []byte(env.GetString("JWT_SECRET", "TOKEN")), nil
+		})
+
+		if err != nil {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		userId, ok := claims["id"].(float64)
+		email, emailOk := claims["email"].(string)
+
+		if ok && emailOk {
+			cxt := context.WithValue(r.Context(), "userId", strconv.FormatFloat(userId, 'f', 0, 64))
+			cxt = context.WithValue(cxt, "email", email)
+			next.ServeHTTP(w, r.WithContext(cxt))
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func RequireAllRoles(roles ...string) func(http.Handler) http.Handler {
 	
 	return func(next http.Handler) http.Handler {
